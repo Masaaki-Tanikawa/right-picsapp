@@ -126,8 +126,30 @@
         </div>
 
         <div>
+            <x-input-label for="username" :value="__('Username')" />
+            <x-text-input id="username" name="username" type="text" class="mt-1 block w-full" :value="old('username', $user->username)" required autocomplete="username" />
+            <p class="mt-1 text-xs text-gray-500">{{ __('3-20 lowercase letters, numbers, or underscores') }}</p>
+            <x-input-error class="mt-2" :messages="$errors->get('username')" />
+        </div>
+
+        <div x-data="{ bio: @js(old('bio', $user->bio ?? '')) }">
+            <x-input-label for="bio" :value="__('Bio')" />
+            <textarea id="bio"
+                      name="bio"
+                      rows="3"
+                      maxlength="160"
+                      x-model="bio"
+                      class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                      placeholder="{{ __('A short description about yourself (up to 160 characters)') }}"></textarea>
+            <p class="mt-1 text-xs text-gray-500 text-right">
+                <span x-text="bio.length"></span> / 160
+            </p>
+            <x-input-error class="mt-2" :messages="$errors->get('bio')" />
+        </div>
+
+        <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="email" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())

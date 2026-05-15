@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'password', 'profile_photo_path'])]
+#[Fillable(['name', 'username', 'bio', 'email', 'password', 'profile_photo_path'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -28,5 +29,19 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'username';
+    }
+
+    public static function generateUniqueUsername(): string
+    {
+        do {
+            $candidate = 'user_'.Str::lower(Str::random(8));
+        } while (static::where('username', $candidate)->exists());
+
+        return $candidate;
     }
 }

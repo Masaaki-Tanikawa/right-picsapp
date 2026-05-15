@@ -21,6 +21,7 @@ test('profile information can be updated', function () {
         ->actingAs($user)
         ->patch('/profile', [
             'name' => 'Test User',
+            'username' => $user->username,
             'email' => 'test@example.com',
         ]);
 
@@ -42,6 +43,7 @@ test('email verification status is unchanged when the email address is unchanged
         ->actingAs($user)
         ->patch('/profile', [
             'name' => 'Test User',
+            'username' => $user->username,
             'email' => $user->email,
         ]);
 
@@ -50,6 +52,96 @@ test('email verification status is unchanged when the email address is unchanged
         ->assertRedirect('/profile');
 
     $this->assertNotNull($user->refresh()->email_verified_at);
+});
+
+test('username can be changed from profile edit', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => 'new_handle',
+            'email' => $user->email,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($user->refresh()->username)->toBe('new_handle');
+});
+
+test('username update rejects reserved words', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => 'admin',
+            'email' => $user->email,
+        ])
+        ->assertSessionHasErrors('username');
+});
+
+test('username update rejects duplicates', function () {
+    User::factory()->create(['username' => 'taken_handle']);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => 'taken_handle',
+            'email' => $user->email,
+        ])
+        ->assertSessionHasErrors('username');
+});
+
+test('username update rejects invalid format', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => 'Invalid-Handle!',
+            'email' => $user->email,
+        ])
+        ->assertSessionHasErrors('username');
+});
+
+test('bio can be set and updated', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'bio' => '📸 旅と食 / 東京',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($user->refresh()->bio)->toBe('📸 旅と食 / 東京');
+});
+
+test('bio update rejects strings longer than 160 characters', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'bio' => str_repeat('あ', 161),
+        ])
+        ->assertSessionHasErrors('bio');
+});
+
+test('bio is displayed on the public profile page', function () {
+    $user = User::factory()->create([
+        'username' => 'bio_target',
+        'bio' => 'Hello world from my bio',
+    ]);
+
+    $this->get('/bio_target')
+        ->assertOk()
+        ->assertSeeText('Hello world from my bio');
 });
 
 test('user can delete their account', function () {
