@@ -155,7 +155,8 @@ test('user can delete their account', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect('/');
+        ->assertRedirect('/')
+        ->assertSessionHas('status', 'account-deleted');
 
     $this->assertGuest();
     $this->assertNull($user->fresh());

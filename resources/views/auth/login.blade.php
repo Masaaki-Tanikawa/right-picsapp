@@ -1,4 +1,10 @@
 <x-guest-layout>
+    @if (session('status') === 'account-deleted')
+        <x-auth-session-status class="mb-4" :status="__('Your account has been deleted.')" />
+    @elseif (session('status'))
+        <x-auth-session-status class="mb-4" :status="session('status')" />
+    @endif
+
     <form method="POST" action="{{ route('login') }}" class="space-y-6">
         @csrf
 

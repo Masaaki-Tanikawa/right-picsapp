@@ -9,11 +9,7 @@
         </p>
     </div>
 
-    @if (session('status'))
-        <div class="bg-green-100 text-green-800 text-sm p-3 text-center mb-4">
-            {{ session('status') }}
-        </div>
-    @endif
+    <x-auth-session-status class="mb-4" :status="session('status')" />
     <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
         @csrf
 

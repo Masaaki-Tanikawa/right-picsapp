@@ -1,5 +1,5 @@
 <x-guest-layout>
-			@if (session('status') == 'verification-link-sent')
+			@if (session('status') === 'verification-link-sent')
 					<x-auth-session-status class="mb-4" :status="__('Verification email has been resent. Please check your inbox.')" />
 			@endif
 

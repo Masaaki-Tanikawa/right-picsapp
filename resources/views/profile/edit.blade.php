@@ -1,12 +1,14 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+    <x-slot name="title">{{ __('Edit Profile') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-[640px] mx-auto px-4 space-y-6">
+            @if (session('status') === 'profile-updated')
+                <x-auth-session-status :status="__('Profile information saved.')" />
+            @elseif (session('status') === 'password-updated')
+                <x-auth-session-status :status="__('Password saved.')" />
+            @endif
+
             <div class="p-4 sm:p-8 bg-white shadow rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')

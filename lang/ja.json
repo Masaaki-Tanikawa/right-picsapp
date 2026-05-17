@@ -52,6 +52,8 @@
     "Reset Password": "パスワードの再設定",
     "Save": "保存する",
     "Saved.": "保存しました。",
+    "Profile information saved.": "プロフィール情報を保存しました。",
+    "Password saved.": "パスワードを保存しました。",
     "SEND RESET LINK": "再設定リンクを送信",
     "Update Password": "パスワードの変更",
     "Username": "ユーザーID",
@@ -62,5 +64,6 @@
     "We have sent a verification email to your registered email address.": "ご登録のメールアドレス宛に認証メールをお送りしました。",
     "We will send you a password reset link.": "パスワード再設定用のリンクをお送りします。",
     "Your email address is unverified.": "メールアドレスがまだ認証されていません。",
+    "Your account has been deleted.": "アカウントを削除しました。",
     "Your email has been verified!": "メールアドレスの認証が完了しました！"
 }
