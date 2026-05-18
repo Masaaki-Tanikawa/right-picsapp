@@ -8,14 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdatePostRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
-
-    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -23,7 +15,12 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['nullable', 'string', 'max:10000'],
+            'images' => ['nullable', 'array', 'max:10'],
+            'images.*' => ['image', 'max:2048'],
+            'deleted_image_ids' => ['nullable', 'array'],
+            'deleted_image_ids.*' => ['integer', 'exists:post_images,id'],
         ];
     }
 }

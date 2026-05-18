@@ -201,9 +201,12 @@ return [
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード（確認）',
         'current_password' => '現在のパスワード',
+        'title' => 'タイトル',
+        'content' => '本文',
+        'images' => '画像',
+        'images.*' => '画像',
+        'deleted_image_ids' => '削除する画像',
+        'deleted_image_ids.*' => '削除する画像',
     ],
 
 ];
-
-
-

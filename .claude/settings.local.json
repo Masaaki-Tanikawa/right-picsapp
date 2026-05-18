@@ -5,7 +5,14 @@
       "Bash(vendor/bin/pint *)",
       "mcp__laravel-boost__database-schema",
       "Bash(cp docs/post-model-guide.md /Users/rightlightxxx/Downloads/post-model-guide.md)",
-      "Read(//Users/rightlightxxx/Downloads/**)"
+      "Read(//Users/rightlightxxx/Downloads/**)",
+      "mcp__laravel-boost__search-docs",
+      "Bash(git stash *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git restore *)",
+      "Bash(git log *)",
+      "Bash(git reset *)"
     ]
   },
   "enableAllProjectMcpServers": true,
