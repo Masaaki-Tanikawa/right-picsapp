@@ -12,7 +12,9 @@
       "Bash(git commit -m ' *)",
       "Bash(git restore *)",
       "Bash(git log *)",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Skill(laravel-best-practices)",
+      "Bash(git commit *)"
     ]
   },
   "enableAllProjectMcpServers": true,
