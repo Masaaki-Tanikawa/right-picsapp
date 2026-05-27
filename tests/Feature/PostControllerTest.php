@@ -20,17 +20,27 @@ test('index passes paginated posts to the view', function () {
 test('show passes the post to the view', function () {
     $post = Post::factory()->create();
 
-    $this->get(route('posts.show', $post))
+    $this->get(route('posts.show', [$post->user, $post]))
         ->assertOk()
         ->assertViewIs('posts.show')
         ->assertViewHas('post', fn ($viewPost) => $viewPost->is($post));
+});
+
+test('show renders share button wired up with the post url', function () {
+    $post = Post::factory()->create();
+    $url = route('posts.show', [$post->user, $post]);
+
+    $response = $this->get($url)->assertOk();
+
+    $response->assertSee('@click="share"', false)
+        ->assertSee(str_replace('/', '\/', $url), false);
 });
 
 test('edit passes the post to the view', function () {
     $owner = User::factory()->create();
     $post = Post::factory()->for($owner)->create();
 
-    $this->actingAs($owner)->get(route('posts.edit', $post))
+    $this->actingAs($owner)->get(route('posts.edit', [$owner, $post]))
         ->assertOk()
         ->assertViewIs('posts.edit')
         ->assertViewHas('post', fn ($viewPost) => $viewPost->is($post));
@@ -65,7 +75,7 @@ test('store persists post and images, then redirects to show', function () {
         expect($image->image_path)->toStartWith('post-images/');
     }
 
-    $response->assertRedirect(route('posts.show', $post))
+    $response->assertRedirect(route('posts.show', [$user, $post]))
         ->assertSessionHas('status', 'post-created');
 });
 
@@ -79,11 +89,11 @@ test('update modifies title and content', function () {
     ]);
 
     $this->actingAs($owner)
-        ->put(route('posts.update', $post), [
+        ->put(route('posts.update', [$owner, $post]), [
             'title' => 'updated',
             'content' => 'updated body',
         ])
-        ->assertRedirect(route('posts.show', $post))
+        ->assertRedirect(route('posts.show', [$owner, $post]))
         ->assertSessionHas('status', 'post-updated');
 
     expect($post->fresh())
@@ -101,7 +111,7 @@ test('update deletes specified images from db and storage', function () {
     $kept = PostImage::factory()->for($post)->create(['image_path' => $keptPath, 'sort_order' => 0]);
     $deleted = PostImage::factory()->for($post)->create(['image_path' => $deletedPath, 'sort_order' => 1]);
 
-    $this->actingAs($owner)->put(route('posts.update', $post), [
+    $this->actingAs($owner)->put(route('posts.update', [$owner, $post]), [
         'deleted_image_ids' => [$deleted->id],
     ]);
 
@@ -118,7 +128,7 @@ test('update appends new images continuing sort_order', function () {
     PostImage::factory()->for($post)->create(['sort_order' => 0]);
     PostImage::factory()->for($post)->create(['sort_order' => 1]);
 
-    $this->actingAs($owner)->put(route('posts.update', $post), [
+    $this->actingAs($owner)->put(route('posts.update', [$owner, $post]), [
         'images' => [
             UploadedFile::fake()->image('new1.jpg'),
             UploadedFile::fake()->image('new2.jpg'),
@@ -140,7 +150,7 @@ test('destroy deletes image files from storage and the post itself', function ()
     PostImage::factory()->for($post)->create(['image_path' => $path1]);
     PostImage::factory()->for($post)->create(['image_path' => $path2]);
 
-    $response = $this->actingAs($owner)->delete(route('posts.destroy', $post));
+    $response = $this->actingAs($owner)->delete(route('posts.destroy', [$owner, $post]));
 
     expect(Post::find($post->id))->toBeNull()
         ->and(PostImage::where('post_id', $post->id)->count())->toBe(0);

@@ -10,7 +10,7 @@ test('guest can access posts index', function () {
 test('guest can access posts show', function () {
     $post = Post::factory()->create();
 
-    $this->get(route('posts.show', $post))->assertOk();
+    $this->get(route('posts.show', [$post->user, $post]))->assertOk();
 });
 
 test('guest is redirected to login from auth-required post routes', function () {
@@ -18,9 +18,9 @@ test('guest is redirected to login from auth-required post routes', function () 
 
     $this->get(route('posts.create'))->assertRedirect(route('login'));
     $this->post(route('posts.store'))->assertRedirect(route('login'));
-    $this->get(route('posts.edit', $post))->assertRedirect(route('login'));
-    $this->put(route('posts.update', $post))->assertRedirect(route('login'));
-    $this->delete(route('posts.destroy', $post))->assertRedirect(route('login'));
+    $this->get(route('posts.edit', [$post->user, $post]))->assertRedirect(route('login'));
+    $this->put(route('posts.update', [$post->user, $post]))->assertRedirect(route('login'));
+    $this->delete(route('posts.destroy', [$post->user, $post]))->assertRedirect(route('login'));
 });
 
 test('authenticated user can access posts create form', function () {
@@ -34,14 +34,14 @@ test('non-owner is forbidden from edit, update, and destroy', function () {
     $other = User::factory()->create();
     $post = Post::factory()->for($owner)->create();
 
-    $this->actingAs($other)->get(route('posts.edit', $post))->assertForbidden();
-    $this->actingAs($other)->put(route('posts.update', $post))->assertForbidden();
-    $this->actingAs($other)->delete(route('posts.destroy', $post))->assertForbidden();
+    $this->actingAs($other)->get(route('posts.edit', [$owner, $post]))->assertForbidden();
+    $this->actingAs($other)->put(route('posts.update', [$owner, $post]))->assertForbidden();
+    $this->actingAs($other)->delete(route('posts.destroy', [$owner, $post]))->assertForbidden();
 });
 
 test('owner can access posts edit', function () {
     $owner = User::factory()->create();
     $post = Post::factory()->for($owner)->create();
 
-    $this->actingAs($owner)->get(route('posts.edit', $post))->assertOk();
+    $this->actingAs($owner)->get(route('posts.edit', [$owner, $post]))->assertOk();
 });

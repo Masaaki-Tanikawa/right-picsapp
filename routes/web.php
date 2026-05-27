@@ -14,9 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('/', [PostController::class, 'index'])->name('posts.index');
-Route::get('/posts/{post}', [PostController::class, 'show'])
-    ->whereNumber('post')
-    ->name('posts.show');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:create,'.Post::class)->group(function () {
         Route::get('/posts/create', [PostController::class, 'create'])
@@ -24,21 +22,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/posts', [PostController::class, 'store'])
             ->name('posts.store');
     });
+});
+
+require __DIR__.'/auth.php';
+
+Route::get('/{user}/{post}', [PostController::class, 'show'])
+    ->scopeBindings()
+    ->whereNumber('post')
+    ->name('posts.show');
+
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:update,post')->group(function () {
-        Route::get('/posts/{post}/edit', [PostController::class, 'edit'])
+        Route::get('/{user}/{post}/edit', [PostController::class, 'edit'])
+            ->scopeBindings()
             ->whereNumber('post')
             ->name('posts.edit');
-        Route::put('/posts/{post}', [PostController::class, 'update'])
+        Route::put('/{user}/{post}', [PostController::class, 'update'])
+            ->scopeBindings()
             ->whereNumber('post')
             ->name('posts.update');
     });
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])
+    Route::delete('/{user}/{post}', [PostController::class, 'destroy'])
+        ->scopeBindings()
         ->whereNumber('post')
         ->middleware('can:delete,post')
         ->name('posts.destroy');
 });
-
-require __DIR__.'/auth.php';
 
 Route::get('/{user}', [UserController::class, 'show'])
     ->where('user', '[a-z0-9_]{3,20}')

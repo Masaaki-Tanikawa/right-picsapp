@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -55,14 +56,14 @@ class PostController extends Controller
         });
 
         return redirect()
-            ->route('posts.show', $post)
+            ->route('posts.show', [$request->user(), $post])
             ->with('status', 'post-created');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Post $post): View
+    public function show(User $user, Post $post): View
     {
         $post->load(['user', 'images']);
 
@@ -74,7 +75,7 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Post $post): View
+    public function edit(User $user, Post $post): View
     {
         $post->load('images');
 
@@ -86,7 +87,7 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, Post $post): RedirectResponse
+    public function update(UpdatePostRequest $request, User $user, Post $post): RedirectResponse
     {
         DB::transaction(function () use ($request, $post) {
             $post->update($request->safe()->only(['title', 'content']));
@@ -117,14 +118,14 @@ class PostController extends Controller
         });
 
         return redirect()
-            ->route('posts.show', $post)
+            ->route('posts.show', [$user, $post])
             ->with('status', 'post-updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post): RedirectResponse
+    public function destroy(User $user, Post $post): RedirectResponse
     {
         DB::transaction(function () use ($post) {
             foreach ($post->images as $image) {
