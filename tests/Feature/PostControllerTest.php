@@ -17,6 +17,16 @@ test('index passes paginated posts to the view', function () {
     expect($response->viewData('posts')->total())->toBe(3);
 });
 
+test('post list links to the detail page', function () {
+    $post = Post::factory()->create(['content' => 'A caption to read more of.']);
+    PostImage::factory()->for($post)->create();
+
+    $this->get(route('posts.index'))
+        ->assertOk()
+        ->assertSee(route('posts.show', [$post->user, $post]), false)
+        ->assertSee(__('Read more'));
+});
+
 test('index returns json with html and next page url when requested as json', function () {
     Post::factory()->count(25)->create();
 

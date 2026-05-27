@@ -26,6 +26,7 @@
         'images' => $post->images,
         'loading' => $compact ? 'lazy' : 'eager',
         'altPrefix' => $post->title ?: __('Post image by :username', ['username' => $post->user->username]),
+        'href' => $compact ? route('posts.show', [$post->user, $post]) : null,
     ])
 
     <div class="flex items-center gap-4 mt-3">
@@ -88,12 +89,21 @@
     </div>
 
     @if ($post->title || $post->content)
-        <div class="mt-3 flex flex-col gap-2 text-sm text-gray-900">
+        <div
+            class="mt-3 flex flex-col gap-2 text-sm text-gray-900"
+            @if ($compact)
+                x-data="{ truncated: false }"
+                x-init="$nextTick(() => truncated = [$refs.title, $refs.body].some((el) => el && el.scrollHeight > el.clientHeight))"
+            @endif
+        >
             @if ($post->title)
-                <p @class(['text-lg font-bold', 'line-clamp-1' => $compact])>{{ $post->title }}</p>
+                <p @class(['text-lg font-bold', 'line-clamp-1' => $compact]) @if ($compact) x-ref="title" @endif>{{ $post->title }}</p>
             @endif
             @if ($post->content)
-                <p @class(['line-clamp-1' => $compact, 'whitespace-pre-line' => ! $compact])>{{ $post->content }}</p>
+                <p @class(['line-clamp-1' => $compact, 'whitespace-pre-line' => ! $compact]) @if ($compact) x-ref="body" @endif>{{ $post->content }}</p>
+            @endif
+            @if ($compact)
+                <a x-show="truncated" x-cloak href="{{ route('posts.show', [$post->user, $post]) }}" class="self-start text-sm text-gray-500 hover:underline">{{ __('Read more') }}</a>
             @endif
         </div>
     @endif

@@ -11,6 +11,7 @@
     $loading = $loading ?? 'lazy';
     $aspectMode = $aspectMode ?? 'square';
     $altPrefix = $altPrefix ?? '';
+    $href = $href ?? null;
 
     $aspect = 1.0;
     if ($aspectMode === 'first' && $count > 0) {
@@ -38,13 +39,15 @@
         >
             @foreach ($images as $index => $image)
                 @php($dim = $extractDimensions($image->image_path))
-                <img
-                    src="{{ $resolve($image->image_path) }}"
-                    alt="{{ $count > 1 ? $altPrefix.' '.__('Image :number', ['number' => $index + 1]) : $altPrefix }}"
-                    loading="{{ $loading }}"
-                    @if ($dim) width="{{ $dim['width'] }}" height="{{ $dim['height'] }}" @endif
-                    class="w-full h-full shrink-0 snap-center object-cover"
-                >
+                @if ($href)<a href="{{ $href }}" class="block w-full h-full shrink-0 snap-center">@endif
+                    <img
+                        src="{{ $resolve($image->image_path) }}"
+                        alt="{{ $count > 1 ? $altPrefix.' '.__('Image :number', ['number' => $index + 1]) : $altPrefix }}"
+                        loading="{{ $loading }}"
+                        @if ($dim) width="{{ $dim['width'] }}" height="{{ $dim['height'] }}" @endif
+                        class="{{ $href ? 'w-full h-full object-cover' : 'w-full h-full shrink-0 snap-center object-cover' }}"
+                    >
+                @if ($href)</a>@endif
             @endforeach
         </div>
 
