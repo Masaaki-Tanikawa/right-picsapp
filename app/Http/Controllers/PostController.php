@@ -6,6 +6,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\PostImageCropper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,16 +48,16 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request): RedirectResponse
+    public function store(StorePostRequest $request, PostImageCropper $cropper): RedirectResponse
     {
-        $post = DB::transaction(function () use ($request) {
+        $post = DB::transaction(function () use ($request, $cropper) {
             $post = $request->user()->posts()->create(
                 $request->safe()->only(['title', 'content'])
             );
 
             foreach ($request->validated('images') as $index => $image) {
                 $post->images()->create([
-                    'image_path' => $image->store('post-images', 'public'),
+                    'image_path' => $cropper->store($image, 'post-images'),
                     'sort_order' => $index,
                 ]);
             }
@@ -96,9 +97,9 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, User $user, Post $post): RedirectResponse
+    public function update(UpdatePostRequest $request, User $user, Post $post, PostImageCropper $cropper): RedirectResponse
     {
-        DB::transaction(function () use ($request, $post) {
+        DB::transaction(function () use ($request, $post, $cropper) {
             $post->update($request->safe()->only(['title', 'content']));
 
             $deletedImageIds = $request->validated('deleted_image_ids', []);
@@ -119,7 +120,7 @@ class PostController extends Controller
 
                 foreach ($newImages as $image) {
                     $post->images()->create([
-                        'image_path' => $image->store('post-images', 'public'),
+                        'image_path' => $cropper->store($image, 'post-images'),
                         'sort_order' => $nextSortOrder++,
                     ]);
                 }
