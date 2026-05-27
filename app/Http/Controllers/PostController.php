@@ -6,7 +6,9 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -16,11 +18,18 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $posts = Post::with(['user', 'images'])
             ->latestFirst()
             ->paginate(20);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'html' => view('posts._post-list-items', ['posts' => $posts])->render(),
+                'nextUrl' => $posts->nextPageUrl(),
+            ]);
+        }
 
         return view('posts.index', [
             'posts' => $posts,

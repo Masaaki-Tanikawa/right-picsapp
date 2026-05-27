@@ -17,6 +17,23 @@ test('index passes paginated posts to the view', function () {
     expect($response->viewData('posts')->total())->toBe(3);
 });
 
+test('index returns json with html and next page url when requested as json', function () {
+    Post::factory()->count(25)->create();
+
+    $response = $this->getJson(route('posts.index'));
+
+    $response->assertOk()->assertJsonStructure(['html', 'nextUrl']);
+    expect($response->json('nextUrl'))->toContain('page=2');
+});
+
+test('index returns null nextUrl on last page', function () {
+    Post::factory()->count(5)->create();
+
+    $response = $this->getJson(route('posts.index'));
+
+    expect($response->json('nextUrl'))->toBeNull();
+});
+
 test('show passes the post to the view', function () {
     $post = Post::factory()->create();
 
