@@ -87,6 +87,28 @@ test('show renders share button wired up with the post url', function () {
         ->assertSee(str_replace('/', '\/', $url), false);
 });
 
+test('detail page shows edit and delete controls to the owner only', function () {
+    $owner = User::factory()->create();
+    $post = Post::factory()->for($owner)->create();
+    $editUrl = route('posts.edit', [$owner, $post]);
+
+    $this->get(route('posts.show', [$owner, $post]))
+        ->assertOk()
+        ->assertDontSee($editUrl, false)
+        ->assertDontSee('value="DELETE"', false);
+
+    $other = User::factory()->create();
+    $this->actingAs($other)->get(route('posts.show', [$owner, $post]))
+        ->assertOk()
+        ->assertDontSee($editUrl, false)
+        ->assertDontSee('value="DELETE"', false);
+
+    $this->actingAs($owner)->get(route('posts.show', [$owner, $post]))
+        ->assertOk()
+        ->assertSee($editUrl, false)
+        ->assertSee('value="DELETE"', false);
+});
+
 test('create renders the new post form', function () {
     $user = User::factory()->create();
 
