@@ -29,6 +29,16 @@ test('authenticated user can access posts create form', function () {
     $this->actingAs($user)->get(route('posts.create'))->assertOk();
 });
 
+test('the literal /create path resolves to the create form, not a user profile', function () {
+    expect(route('posts.create', [], false))->toBe('/create');
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get('/create')
+        ->assertOk()
+        ->assertViewIs('posts.create');
+});
+
 test('non-owner is forbidden from edit, update, and destroy', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();
