@@ -111,6 +111,26 @@ test('edit passes the post to the view', function () {
         ->assertViewHas('post', fn ($viewPost) => $viewPost->is($post));
 });
 
+test('edit form is prefilled and wired up for the owner', function () {
+    $owner = User::factory()->create();
+    $post = Post::factory()->for($owner)->create([
+        'title' => 'Editable title',
+        'content' => 'Editable body',
+    ]);
+    $image = PostImage::factory()->for($post)->create();
+
+    $this->actingAs($owner)->get(route('posts.edit', [$owner, $post]))
+        ->assertOk()
+        ->assertSee('action="'.route('posts.update', [$owner, $post]).'"', false)
+        ->assertSee('name="_method"', false)
+        ->assertSee('value="PUT"', false)
+        ->assertSee('name="images[]"', false)
+        ->assertSee('name="deleted_image_ids[]"', false)
+        ->assertSee('Editable title', false)
+        ->assertSee('Editable body', false)
+        ->assertSee(basename($image->image_path), false);
+});
+
 // ── store ─────────────────────────────────────────────────────────
 
 test('store persists post and images, then redirects to show', function () {
