@@ -27,7 +27,14 @@
       "Bash(rm /tmp/newpost.patch)",
       "Bash(git checkout *)",
       "Bash(set -e)",
-      "Bash(git branch *)"
+      "Bash(git branch *)",
+      "Bash(php *)",
+      "Bash(brew services *)",
+      "Bash(grep -nA3 \"'attributes'\" lang/ja/validation.php)",
+      "Bash(grep -nA8 \"'attributes'\\\\|'custom'\" lang/ja/validation.php)",
+      "Bash(git diff *)",
+      "Bash(awk -v keep=2 'BEGIN{n=split\\(keep,K,\",\"\\);for\\(i=1;i<=n;i++\\)w[K[i]]=1;h=0} *)",
+      "Bash(awk -v keep=1,3 'BEGIN{n=split\\(keep,K,\",\"\\);for\\(i=1;i<=n;i++\\)w[K[i]]=1;h=0} *)"
     ]
   },
   "enableAllProjectMcpServers": true,

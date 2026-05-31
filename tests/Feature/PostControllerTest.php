@@ -44,6 +44,30 @@ test('index returns null nextUrl on last page', function () {
     expect($response->json('nextUrl'))->toBeNull();
 });
 
+test('empty feed shows a create CTA to authenticated users but not guests', function () {
+    $this->get(route('posts.index'))
+        ->assertOk()
+        ->assertDontSee('<span>'.__('New post').'</span>', false);
+
+    $user = User::factory()->create();
+    $this->actingAs($user)->get(route('posts.index'))
+        ->assertOk()
+        ->assertSee('<span>'.__('New post').'</span>', false);
+});
+
+test('non-empty feed shows the mobile FAB to authenticated users only', function () {
+    Post::factory()->count(2)->create();
+
+    $this->get(route('posts.index'))
+        ->assertOk()
+        ->assertDontSee('sm:hidden fixed bottom-6 right-6', false);
+
+    $user = User::factory()->create();
+    $this->actingAs($user)->get(route('posts.index'))
+        ->assertOk()
+        ->assertSee('sm:hidden fixed bottom-6 right-6', false);
+});
+
 test('show passes the post to the view', function () {
     $post = Post::factory()->create();
 
@@ -118,6 +142,68 @@ test('store persists post and images, then redirects to show', function () {
 
     $response->assertRedirect(route('posts.show', [$user, $post]))
         ->assertSessionHas('status', 'post-created');
+});
+
+test('store requires at least one image', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('posts.store'), ['title' => 'No images here'])
+        ->assertSessionHasErrors('images');
+
+    expect(Post::count())->toBe(0);
+});
+
+test('store rejects more than ten images', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('posts.store'), [
+            'images' => collect(range(1, 11))
+                ->map(fn ($n) => UploadedFile::fake()->image("img{$n}.jpg"))
+                ->all(),
+        ])
+        ->assertSessionHasErrors('images');
+
+    expect(Post::count())->toBe(0);
+});
+
+test('store rejects a non-image file', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('posts.store'), [
+            'images' => [UploadedFile::fake()->create('document.pdf', 10)],
+        ])
+        ->assertSessionHasErrors('images.0');
+
+    expect(Post::count())->toBe(0);
+});
+
+test('store rejects an image larger than 2MB', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('posts.store'), [
+            'images' => [UploadedFile::fake()->image('huge.jpg')->size(3000)],
+        ])
+        ->assertSessionHasErrors('images.0');
+
+    expect(Post::count())->toBe(0);
+});
+
+test('store rejects title and content that exceed their limits', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('posts.store'), [
+            'title' => str_repeat('a', 256),
+            'content' => str_repeat('a', 10001),
+            'images' => [UploadedFile::fake()->image('a.jpg')],
+        ])
+        ->assertSessionHasErrors(['title', 'content']);
+
+    expect(Post::count())->toBe(0);
 });
 
 // ── update ────────────────────────────────────────────────────────

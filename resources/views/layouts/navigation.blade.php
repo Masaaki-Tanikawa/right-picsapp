@@ -1,4 +1,4 @@
-<nav class="bg-white border-b border-gray-100">
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-40">
     <div class="max-w-xl mx-auto px-4 sm:px-0">
         <div class="flex justify-between items-center h-16">
             <a href="{{ route('posts.index') }}" class="inline-flex items-center text-gray-700 hover:text-gray-900" aria-label="{{ config('app.name') }}">

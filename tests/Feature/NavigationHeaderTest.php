@@ -22,6 +22,14 @@ test('header shows login and register links for guests, hides post-create', func
         ->assertDontSee(route('logout'), false);
 });
 
+test('header stays fixed on scroll via sticky positioning', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('posts.index'))
+        ->assertOk()
+        ->assertSee('sticky top-0', false);
+});
+
 test('logo links to posts index on every authenticated page', function () {
     $user = User::factory()->create();
 
