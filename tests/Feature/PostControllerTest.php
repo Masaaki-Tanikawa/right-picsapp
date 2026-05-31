@@ -63,6 +63,20 @@ test('show renders share button wired up with the post url', function () {
         ->assertSee(str_replace('/', '\/', $url), false);
 });
 
+test('create renders the new post form', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('posts.create'));
+
+    $response->assertOk()
+        ->assertViewIs('posts.create')
+        ->assertSee('action="'.route('posts.store').'"', false)
+        ->assertSee('enctype="multipart/form-data"', false)
+        ->assertSee('name="images[]"', false)
+        ->assertSee('name="title"', false)
+        ->assertSee('name="content"', false);
+});
+
 test('edit passes the post to the view', function () {
     $owner = User::factory()->create();
     $post = Post::factory()->for($owner)->create();
