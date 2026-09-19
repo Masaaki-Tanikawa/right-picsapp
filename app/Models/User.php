@@ -6,7 +6,9 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -43,5 +45,25 @@ class User extends Authenticatable implements MustVerifyEmail
         } while (static::where('username', $candidate)->exists());
 
         return $candidate;
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function (): ?string {
+                if (! $this->profile_photo_path) {
+                    return null;
+                }
+
+                return Str::startsWith($this->profile_photo_path, ['http://', 'https://'])
+                    ? $this->profile_photo_path
+                    : asset('storage/'.$this->profile_photo_path);
+            }
+        );
     }
 }

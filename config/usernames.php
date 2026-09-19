@@ -5,6 +5,7 @@ return [
         'admin',
         'api',
         'about',
+        'create',
         'help',
         'home',
         'login',

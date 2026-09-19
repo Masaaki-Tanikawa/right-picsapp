@@ -54,7 +54,8 @@ test('other authenticated users see the follow button', function () {
 
     $response->assertOk();
     $response->assertSee(__('Follow'));
-    $response->assertDontSee(__('Edit Profile'));
+    // profile.edit appears only in the header dropdown (1×), never in the profile body of another user
+    expect(substr_count($response->getContent(), route('profile.edit')))->toBe(1);
 });
 
 test('empty state message is shown when there are no posts', function () {

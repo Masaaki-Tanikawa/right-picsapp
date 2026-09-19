@@ -80,6 +80,18 @@ test('username update rejects reserved words', function () {
         ->assertSessionHasErrors('username');
 });
 
+test('username "create" is reserved so it cannot collide with the create route', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch('/profile', [
+            'name' => $user->name,
+            'username' => 'create',
+            'email' => $user->email,
+        ])
+        ->assertSessionHasErrors('username');
+});
+
 test('username update rejects duplicates', function () {
     User::factory()->create(['username' => 'taken_handle']);
     $user = User::factory()->create();
