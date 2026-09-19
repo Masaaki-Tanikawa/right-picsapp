@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\User;
@@ -51,6 +52,13 @@ class PostSeeder extends Seeder
 
             $likers = $users->random(fake()->numberBetween(0, $users->count()));
             $post->likers()->attach($likers);
+
+            Comment::factory()
+                ->count(fake()->numberBetween(0, 4))
+                ->create([
+                    'post_id' => $post->id,
+                    'user_id' => fn () => $users->random()->id,
+                ]);
         }
     }
 }

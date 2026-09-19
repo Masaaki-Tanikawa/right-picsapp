@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use App\Services\PostImageCropper;
@@ -22,7 +23,7 @@ class PostController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         $posts = Post::with(['user', 'images'])
-            ->withCount('likers')
+            ->withCount(['likers', 'comments'])
             ->when($request->user(), fn ($query, $user) => $query->withCount([
                 'likers as is_liked' => fn ($query) => $query->whereKey($user->id),
             ]))
@@ -80,7 +81,7 @@ class PostController extends Controller
     public function show(Request $request, User $user, Post $post): View
     {
         $post->load(['user', 'images'])
-            ->loadCount('likers');
+            ->loadCount(['likers', 'comments']);
 
         if ($request->user()) {
             $post->loadCount([
@@ -88,8 +89,16 @@ class PostController extends Controller
             ]);
         }
 
+        $comments = $post->comments()->with('user')->paginate(10)
+            ->withPath(route('comments.index', [$user, $post]));
+
+        // Attach the known post to each comment so the delete policy check
+        // does not trigger a lazy-load query per comment.
+        $comments->each(fn (Comment $comment) => $comment->setRelation('post', $post));
+
         return view('posts.show', [
             'post' => $post,
+            'comments' => $comments,
         ]);
     }
 
