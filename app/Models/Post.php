@@ -31,6 +31,11 @@ class Post extends Model
         return $this->belongsToMany(User::class, 'likes')->withTimestamps();
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->latest();
+    }
+
     public function getDisplayCreatedAtAttribute(): string
     {
         return $this->created_at->format('Y年m月d日 H:i');

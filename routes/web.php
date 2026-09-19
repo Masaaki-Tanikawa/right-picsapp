@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -59,7 +60,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('post')
         ->middleware('throttle:60,1')
         ->name('likes.destroy');
+
+    Route::post('/{user}/{post}/comments', [CommentController::class, 'store'])
+        ->scopeBindings()
+        ->whereNumber('post')
+        ->middleware('throttle:60,1')
+        ->name('comments.store');
+    Route::delete('/{user}/{post}/comments/{comment}', [CommentController::class, 'destroy'])
+        ->scopeBindings()
+        ->whereNumber(['post', 'comment'])
+        ->middleware(['can:delete,comment', 'throttle:60,1'])
+        ->name('comments.destroy');
 });
+
+Route::get('/{user}/{post}/comments', [CommentController::class, 'index'])
+    ->scopeBindings()
+    ->whereNumber('post')
+    ->name('comments.index');
 
 Route::get('/{user}', [UserController::class, 'show'])
     ->where('user', '[a-z0-9_]{3,20}')
