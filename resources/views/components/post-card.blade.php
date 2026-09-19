@@ -30,11 +30,55 @@
     ])
 
     <div class="flex items-center gap-4 mt-3">
-        <button type="button" aria-label="{{ __('Like') }}" class="text-gray-700 hover:text-red-500">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-            </svg>
-        </button>
+        @auth
+            <div
+                x-data="{
+                    liked: {{ $post->is_liked ? 'true' : 'false' }},
+                    count: {{ (int) ($post->likers_count ?? 0) }},
+                    pending: false,
+                    async toggle() {
+                        if (this.pending) return;
+                        this.pending = true;
+                        const wasLiked = this.liked;
+                        this.liked = !wasLiked;
+                        this.count += this.liked ? 1 : -1;
+                        try {
+                            const response = await fetch(@js(route('likes.store', [$post->user, $post])), {
+                                method: wasLiked ? 'DELETE' : 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': @js(csrf_token()),
+                                    'Accept': 'application/json',
+                                },
+                            });
+                            if (! response.ok) throw new Error();
+                            const data = await response.json();
+                            this.liked = data.liked;
+                            this.count = data.likers_count;
+                        } catch {
+                            this.liked = wasLiked;
+                            this.count += wasLiked ? 1 : -1;
+                        } finally {
+                            this.pending = false;
+                        }
+                    },
+                }"
+                class="flex items-center gap-1"
+            >
+                <button type="button" @click="toggle" :aria-pressed="liked" aria-label="{{ __('Like') }}" class="hover:text-red-500" :class="liked ? 'text-red-500' : 'text-gray-700'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6" aria-hidden="true" :fill="liked ? 'currentColor' : 'none'">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                </button>
+                <span class="text-sm" x-text="count"></span>
+            </div>
+        @else
+            <div class="flex items-center gap-1 text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                </svg>
+                <span class="text-sm">{{ (int) ($post->likers_count ?? 0) }}</span>
+            </div>
+        @endauth
         {{-- コメント数はコメント機能のブランチで表示予定 --}}
         <button type="button" aria-label="{{ __('Comment') }}" class="flex items-center gap-1 text-gray-700 hover:text-gray-900">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-6 h-6" aria-hidden="true">
