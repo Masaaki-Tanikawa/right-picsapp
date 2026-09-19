@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -47,6 +48,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('post')
         ->middleware('can:delete,post')
         ->name('posts.destroy');
+
+    Route::post('/{user}/{post}/likes', [LikeController::class, 'store'])
+        ->scopeBindings()
+        ->whereNumber('post')
+        ->middleware('throttle:60,1')
+        ->name('likes.store');
+    Route::delete('/{user}/{post}/likes', [LikeController::class, 'destroy'])
+        ->scopeBindings()
+        ->whereNumber('post')
+        ->middleware('throttle:60,1')
+        ->name('likes.destroy');
 });
 
 Route::get('/{user}', [UserController::class, 'show'])

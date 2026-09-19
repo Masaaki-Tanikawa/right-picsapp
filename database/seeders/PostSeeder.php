@@ -48,6 +48,9 @@ class PostSeeder extends Seeder
                     'sort_order' => $j,
                 ]);
             }
+
+            $likers = $users->random(fake()->numberBetween(0, $users->count()));
+            $post->likers()->attach($likers);
         }
     }
 }

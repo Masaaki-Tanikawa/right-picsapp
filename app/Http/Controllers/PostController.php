@@ -22,6 +22,10 @@ class PostController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         $posts = Post::with(['user', 'images'])
+            ->withCount('likers')
+            ->when($request->user(), fn ($query, $user) => $query->withCount([
+                'likers as is_liked' => fn ($query) => $query->whereKey($user->id),
+            ]))
             ->latestFirst()
             ->paginate(20);
 
@@ -73,9 +77,16 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user, Post $post): View
+    public function show(Request $request, User $user, Post $post): View
     {
-        $post->load(['user', 'images']);
+        $post->load(['user', 'images'])
+            ->loadCount('likers');
+
+        if ($request->user()) {
+            $post->loadCount([
+                'likers as is_liked' => fn ($query) => $query->whereKey($request->user()->id),
+            ]);
+        }
 
         return view('posts.show', [
             'post' => $post,
