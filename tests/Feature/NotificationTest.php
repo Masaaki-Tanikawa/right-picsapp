@@ -4,6 +4,7 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use App\Notifications\CommentReceived;
+use Illuminate\Support\Facades\DB;
 
 // ── notify on comment ─────────────────────────────────────────────
 
@@ -84,4 +85,63 @@ test('the nav shows zero unread when there are no notifications', function () {
         ->get(route('posts.index'))
         ->assertOk()
         ->assertSee('unread: 0', false);
+});
+
+// ── cleanup on delete ─────────────────────────────────────────────
+
+test('deleting a comment deletes the notification about it', function () {
+    $owner = User::factory()->create();
+    $post = Post::factory()->for($owner)->create();
+    $commenter = User::factory()->create();
+
+    $this->actingAs($commenter)
+        ->postJson(route('comments.store', [$owner, $post]), ['content' => 'soon deleted'])
+        ->assertCreated();
+
+    $comment = Comment::query()->latest('id')->first();
+
+    expect($owner->notifications()->count())->toBe(1);
+
+    $this->actingAs($commenter)
+        ->deleteJson(route('comments.destroy', [$owner, $post, $comment]))
+        ->assertOk();
+
+    expect($owner->notifications()->count())->toBe(0);
+});
+
+test('deleting a post deletes the notifications about its comments', function () {
+    $owner = User::factory()->create();
+    $post = Post::factory()->for($owner)->create();
+    $otherPost = Post::factory()->for($owner)->create();
+
+    $owner->notify(new CommentReceived(Comment::factory()->for($post)->create()));
+    $owner->notify(new CommentReceived(Comment::factory()->for($otherPost)->create()));
+
+    expect($owner->notifications()->count())->toBe(2);
+
+    $this->actingAs($owner)
+        ->delete(route('posts.destroy', [$owner, $post]))
+        ->assertRedirect(route('posts.index'));
+
+    expect($owner->notifications()->count())->toBe(1)
+        ->and($owner->notifications()->first()->data['post_id'])->toBe($otherPost->id);
+});
+
+test('deleting a user deletes their notifications and the ones about their comments', function () {
+    $owner = User::factory()->create();
+    $post = Post::factory()->for($owner)->create();
+    $commenter = User::factory()->create();
+
+    $owner->notify(new CommentReceived(Comment::factory()->for($post)->for($commenter)->create()));
+
+    $ownPost = Post::factory()->for($commenter)->create();
+    $commenter->notify(new CommentReceived(Comment::factory()->for($ownPost)->create()));
+
+    expect($owner->notifications()->count())->toBe(1)
+        ->and($commenter->notifications()->count())->toBe(1);
+
+    $commenter->delete();
+
+    expect($owner->notifications()->count())->toBe(0)
+        ->and(DB::table('notifications')->count())->toBe(0);
 });
