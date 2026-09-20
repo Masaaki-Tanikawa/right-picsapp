@@ -3,12 +3,24 @@
 namespace App\Notifications;
 
 use App\Models\Comment;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
 class CommentReceived extends Notification
 {
     public function __construct(public Comment $comment) {}
+
+    /**
+     * Delete the stored notifications whose payload matches the given key and value.
+     */
+    public static function purgeWhereData(string $key, int $value): void
+    {
+        DatabaseNotification::query()
+            ->where('type', static::class)
+            ->where("data->{$key}", $value)
+            ->delete();
+    }
 
     /**
      * Get the notification's delivery channels.
