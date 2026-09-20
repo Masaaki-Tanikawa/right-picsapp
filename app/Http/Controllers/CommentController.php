@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCommentRequest;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\CommentReceived;
 use Illuminate\Http\JsonResponse;
 
 class CommentController extends Controller
@@ -37,6 +38,11 @@ class CommentController extends Controller
         $post->loadMissing('user');
         $comment->setRelation('user', $request->user());
         $comment->setRelation('post', $post);
+
+        // Notify the post owner, unless they are commenting on their own post.
+        if ($post->user_id !== $request->user()->id) {
+            $post->user->notify(new CommentReceived($comment));
+        }
 
         return response()->json([
             'html' => view('posts._comment', ['comment' => $comment])->render(),

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\CommentReceived;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,13 @@ class Comment extends Model
 {
     /** @use HasFactory<CommentFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Comment $comment): void {
+            CommentReceived::purgeWhereData('comment_id', $comment->id);
+        });
+    }
 
     public function user(): BelongsTo
     {

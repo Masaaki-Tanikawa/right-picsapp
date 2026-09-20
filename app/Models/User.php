@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\CommentReceived;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -32,6 +33,15 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            $user->notifications()->delete();
+
+            CommentReceived::purgeWhereData('commenter_id', $user->id);
+        });
     }
 
     public function getRouteKeyName(): string

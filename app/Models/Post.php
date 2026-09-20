@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\CommentReceived;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,13 @@ class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Post $post): void {
+            CommentReceived::purgeWhereData('post_id', $post->id);
+        });
+    }
 
     public function user(): BelongsTo
     {

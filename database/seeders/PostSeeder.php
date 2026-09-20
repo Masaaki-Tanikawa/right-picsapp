@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\User;
+use App\Notifications\CommentReceived;
 use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder
@@ -53,12 +54,20 @@ class PostSeeder extends Seeder
             $likers = $users->random(fake()->numberBetween(0, $users->count()));
             $post->likers()->attach($likers);
 
-            Comment::factory()
+            $comments = Comment::factory()
                 ->count(fake()->numberBetween(0, 4))
                 ->create([
                     'post_id' => $post->id,
                     'user_id' => fn () => $users->random()->id,
                 ]);
+
+            // Notify the post owner about comments left by other users.
+            foreach ($comments as $comment) {
+                if ($comment->user_id !== $post->user_id) {
+                    $comment->setRelation('post', $post);
+                    $post->user->notify(new CommentReceived($comment));
+                }
+            }
         }
     }
 }
